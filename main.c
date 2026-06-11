@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <time.h>
 
 int no_special = 0;
@@ -33,15 +34,21 @@ void generate_password(int size, int use_lower, int use_upper, int use_num, int 
         password[i] = charset[rand() % charset_length];
     }
     password[size] = '\0';
-
-    printf("%s\n", password);
+    if (isatty(STDOUT_FILENO)){
+        printf("%s\n", password);
+    } else {
+        printf("%s", password);
+    }
 }
 
 int main(int argc, char const *argv[])
 {
     int has_h = 0;
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-h") == 0) {
+        if (
+            strcmp(argv[i], "-h") == 0 ||
+            strcmp(argv[i], "--help") == 0
+        ) {
             has_h = 1;
         }
     }
@@ -70,16 +77,7 @@ int main(int argc, char const *argv[])
     int use_lower = 1, use_upper = 1, use_num = 1, use_spec = 1;
 
     for (int i = 2; i < argc; i++) {
-        if (strcmp(argv[i], "-h") == 0) {
-            printf("Usage: %s <size> [-nn] [-ns] [-nl] [-nu] [-h]\n", argv[0]);
-            printf("Options:\n");
-            printf("  -nn  No numbers\n");
-            printf("  -ns  No special characters\n");
-            printf("  -nl  No lowercase letters\n");
-            printf("  -nu  No uppercase letters\n");
-            printf("  -h   Show this help message\n");
-            exit(0);
-        } else if (strcmp(argv[i], "-nn") == 0) {
+        if (strcmp(argv[i], "-nn") == 0) {
             use_num = 0;
         } else if (strcmp(argv[i], "-ns") == 0) {
             use_spec = 0;
@@ -87,6 +85,9 @@ int main(int argc, char const *argv[])
             use_lower = 0;
         } else if (strcmp(argv[i], "-nu") == 0) {
             use_upper = 0;
+        } else {
+            printf("Usage: %s <size> [-nn] [-ns] [-nl] [-nu]\n", argv[0]);
+            exit(1);
         }
     }
 
